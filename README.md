@@ -98,7 +98,7 @@ For full methodological details, see [`simulation/README.md`](simulation/README.
 <!--**Supplementary outputs (interactive maps, extended figures):**
 > Zenodo record: [https://zenodo.org/records/17074045](https://zenodo.org/records/17074045)
 -->
-**ArXiv:** [ArXiv version coming soon]
+
 
 ---
 
