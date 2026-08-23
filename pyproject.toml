@@ -23,13 +23,15 @@ dependencies = [
     "pandas>=2.3.0",
     "peartree>=0.6.4",
     "playwright>=1.54.0",
+    "plotnine>=0.15.7",
     "polars>=1.31.0",
     "pyarrow",
     "pynsee>=0.2.3",
-    "pyrosm>=0.6.2",
+    "pyrosm>=0.6.3",
     "r5py>=1.0.6",
     "rustworkx>=0.17.1",
     "scikit-learn>=1.7.0",
     "shapely>=2.1.1",
-    "ydata-profiling>=4.16.1",
 ]
+
+
