@@ -80,51 +80,46 @@ scripts/main.py                          ← entry point
 | 1    | `preparing_resources.py`         | Load and validate all network data        |
 | 2    | `pre_process_amenities.py`       | Build shelter/destination index           |
 | 3    | `evacuation_area_initializer.py` | Define zone, assign destinations          |
-| 4    | `agents_model_initializer.py`    | Instantiate 3,300+ agents with SVI params |
+| 4    | `agents_model_initializer.py`    | Filter & instantiate active evacuation agents (590 agents in zone out of 3,337 survey individuals) |
 | 5    | `evacuation_model.py` (×N steps) | Simulate each agent per time step         |
 | 6    | `simulation_analytics.py`        | Export results and generate figures       |
 
 ---
 
-## Configuration Flow
+## Configuration & Output Flow
 
-The simulation is controlled by `simulation/configs/evacuation_simulation.json`.
+The simulation configuration and run metadata are automatically generated and saved to `simulation/configs/evacuation_simulation.json` at the conclusion of each simulation run by `scripts/main.py` (via AgentPy's `results.save()` / `save_results_manually()`).
 
-### Key configuration blocks
+> [!NOTE]
+> **Agent Population Filtering**: While `data/individuals_dataset.csv` contains 3,337 total survey individuals (~3,300+ full NetMob25 survey scale), `AgentsGatherer` filters for individuals who have valid, active GPS traces located **inside the active 50 km evacuation zone polygon** around Paris on the scenario date. This produces 590 active agents (`created_objects: 590`) in the simulation run.
 
-```jsonc
+### Key configuration and metadata structure (`evacuation_simulation.json`)
+
+```json
 {
-  "scenario": {
-    // Geographic parameters
-    "crisis_center_lat": 48.8566,      // Paris (Notre-Dame)
-    "crisis_center_lon": 2.3522,
-    "evacuation_radius_km": 50,        // The evacuation zone is 50 km around the center
-    "simulation_horizon_min": 180,     // 3-hour window
-    "time_step_sec": 60                // 1-minute resolution
+  "info": {
+    "model_type": "EvacuationModel",
+    "time_stamp": "2025-09-07 03:32:34",
+    "agentpy_version": "0.1.5",
+    "python_version": "3.12",
+    "experiment": false,
+    "completed": true,
+    "created_objects": 590,
+    "completed_steps": 180,
+    "run_time": "1:06:36.960250"
   },
-
-  "agents": {
-    "n_agents": 3300,
-    // How agent mode choices are initialized:
-    // "netmob25_observed" uses observed travel modes from the dataset
-    "mode_initialization": "netmob25_observed",
-    // SVI weighting scheme used for behavioral mapping:
-    "svi_parameterization": "pca_weighted"
-  },
-
-  "svi_behavioral_mapping": {
-    // Maps each SVI quartile to behavioral parameters.
-    // Higher SVI = longer delay, slower speed, less patience.
-    "Low":       { "delay_sec": 120, "speed_mult": 1.0,  "patience": 0.9 },
-    "Moderate":  { "delay_sec": 300, "speed_mult": 0.85, "patience": 0.7 },
-    "High":      { "delay_sec": 600, "speed_mult": 0.70, "patience": 0.5 },
-    "Very_High": { "delay_sec": 900, "speed_mult": 0.55, "patience": 0.3 }
-  },
-
-  "output": {
-    "runs_dir":    "outputs/simulation_runs",
-    "states_dir":  "outputs/agent_states",
-    "figures_dir": "outputs/figures"
+  "parameters": {
+    "constants": {
+      "start_datetime": "2023-01-01T08:00:00",
+      "step_seconds": 60,
+      "svi_speed_penalty": 0.5,
+      "max_svi_start_delay_s": 1800,
+      "base_patience_s": 300,
+      "graphml_path_drive": "data/maps/osmnx_layers/IDF_drive_network.graphml",
+      "graphml_path_walk": "data/maps/osmnx_layers/IDF_walk_network.graphml",
+      "graphml_path_cycle": "data/maps/osmnx_layers/IDF_bike_network.graphml",
+      "amenities_df": "data/maps/osmnx_layers/idf_amenities.csv"
+    }
   }
 }
 ```
@@ -221,35 +216,27 @@ Agent terminal states are defined as:
 
 ## Extending Experiments
 
-### Adding a new scenario configuration
+### Modifying scenario parameters
 
-```bash
-# 1. Copy the base config
-cp simulation/configs/evacuation_simulation.json \
-   simulation/configs/evacuation_simulation_scenario2.json
+Scenario parameters (such as simulation steps, center latitude/longitude, evacuation radius, and network paths) are defined in `scripts/main.py` and passed into `run_simulation(parameters)`. To run a custom scenario:
 
-# 2. Edit the new config (e.g., change radius, time horizon, or SVI mappings)
-nano simulation/configs/evacuation_simulation_scenario2.json
-
-# 3. Run
-python scripts/main.py --config simulation/configs/evacuation_simulation_scenario2.json
-```
+1. Update or parameterize the `parameters` dictionary in `scripts/main.py` (e.g. adjust `MAX_SIMULATION_STEPS` or `SCENARIO_RADIUS_KM`).
+2. Run `python scripts/main.py`.
+3. The run metadata and execution output will automatically save to `simulation/configs/evacuation_simulation.json` and `simulation/configs/simulation_summary.json`.
 
 ### Modifying SVI behavioral parameters
 
-Edit the `svi_behavioral_mapping` block in the config JSON. The four quartiles
-(`Low`, `Moderate`, `High`, `Very_High`) each have three behavioral parameters
-(`delay_sec`, `speed_mult`, `patience`). These are the primary levers for
-sensitivity analysis.
+Edit the behavioral parameter constants in `scripts/main.py` or `simulation/model/evacuation_model.py`. The parameters (`svi_speed_penalty`, `max_svi_start_delay_s`, `base_patience_s`) control SVI-driven behavior:
 
-To use a continuous (non-quartile) SVI mapping, modify
-`simulation/model/agents_model_initializer.py` — specifically the function that
-translates `svi_score` into agent attributes.
+| Parameter               | Description                                                                      | SVI effect                 |
+|-------------------------|----------------------------------------------------------------------------------|----------------------------|
+| `max_svi_start_delay_s` | Seconds before an agent begins evacuating after the crisis event                 | Higher SVI → longer delay  |
+| `svi_speed_penalty`     | Speed penalty factor applied to maximum agent velocity                           | Higher SVI → slower        |
+| `base_patience_s`       | Base patience before an agent triggers fallback/rerouting due to network congestion | Higher SVI → less tolerant |
 
 ### Modifying agent step logic
 
-The per-timestep agent behavior is in `simulation/model/evacuation_model.py`,
-in the `step()` method. The logic sequence is:
+The per-timestep agent behavior is in `simulation/model/evacuation_model.py`, in the `step()` method. The logic sequence is:
 
 ```
 step():
@@ -263,9 +250,9 @@ step():
 ### Adding a new transportation mode
 
 1. Prepare the mode's OSM network and save it to `data/maps/osmnx_layers/` as a `.graphml` file.
-2. Register it in `simulation/preparing_resources.py` by adding it to the `NETWORK_MODES` dictionary.
-3. Add the mode's behavioral profile to the config JSON.
-4. Handle the new mode in the agent `step()` logic (routing and speed lookup).
+2. Register the mode extraction in `IleDeFranceMobilityDataCollector.ile_de_france_open_street_map_()` in `simulation/preparing_resources.py` (adding it to the `networks` list).
+3. Pass the graphml file path to `parameters` in `scripts/main.py`.
+4. Handle the new mode in the agent `step()` logic in `simulation/model/evacuation_model.py`.
 
 ### Adding new equity metrics
 
