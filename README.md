@@ -15,27 +15,23 @@
 
 ## Overview
 
-Traditional urban evacuation models treat populations as homogeneous flows routed
-through a network — an approach that is dangerously incomplete. The capacity to
-respond to a crisis is not uniform: a person's age, physical ability, household
-structure, and socioeconomic status fundamentally determine their ability to
-evacuate before those around them are already safe.
+Traditional urban evacuation models treat populations as homogeneous flows routed through a network — an approach that
+is dangerously incomplete. The capacity to respond to a crisis is not uniform: a person's age, physical ability,
+household structure, and socioeconomic status fundamentally determine their ability to evacuate before those around them
+are already safe.
 
-This repository implements a two-stage computational framework to **quantify the
-Evacuation Equity Gap** — the measurable difference in evacuation outcomes
-between the most and least socially vulnerable individuals — during a large-scale
-crisis simulation in the Greater Paris (Île-de-France) region.
+This repository implements a two-stage computational framework to **quantify the Evacuation Equity Gap** — the
+measurable difference in evacuation outcomes between the most and least socially vulnerable individuals — during a
+large-scale crisis simulation in the Greater Paris (Île-de-France) region.
 
 ### Research questions
 
-1. Can a robust, multi-dimensional **Social Vulnerability Index (SVI)** be
-   constructed from individual-level mobility and sociodemographic data,
-   moving beyond broad "special needs" categories?
-2. Is there a quantifiable **Evacuation Equity Gap** between vulnerability groups
-   in terms of success rate and evacuation time?
-3. How do vulnerability-driven behaviors interact with urban mobility modes
-   (walking, cycling, motorized vehicles, public transit) to produce emergent
-   system-level outcomes such as gridlock and widespread evacuation failure?
+1. Can a robust, multi-dimensional **Social Vulnerability Index (SVI)** be constructed from individual-level mobility
+   and sociodemographic data, moving beyond broad "special needs" categories?
+2. Is there a quantifiable **Evacuation Equity Gap** between vulnerability groups in terms of success rate and
+   evacuation time?
+3. How do vulnerability-driven behaviors interact with urban mobility modes (walking, cycling, motorized vehicles,
+   public transit) to produce emergent system-level outcomes such as gridlock and widespread evacuation failure?
 
 ### Key findings
 
@@ -56,19 +52,16 @@ The framework operates in two sequential stages:
 
 ### Stage 1 — Social Vulnerability Index (SVI) Construction
 
-Individual-level SVI scores are derived from 14 sociodemographic variables in
-the NetMob25 dataset:
+Individual-level SVI scores are derived from 14 sociodemographic variables in the NetMob25 dataset:
 
 - **Demographic**: `SEX`, `AGE`, `DIPLOMA`, `PMR` (reduced mobility status)
 - **Household**: `NBPERS_HOUSE`, `NB_CAR`
 - **Mobility assets**: `TWO_WHEELER`, `BIKE`, `ELECT_SCOOTER`
 - **Transit access**: `SUB` (Navigo), `IMAGINER_SUB`, `OTHER_SUB_PT`, `BIKE_SUB`, `NSM_SUB`
 
-The pipeline applies **vulnerability-aligned feature engineering** (ensuring
-higher values consistently indicate higher vulnerability), **nonlinear
-transformations** (inverse-log and log(1+x) to model diminishing returns of
-resources), and **Principal Component Analysis (PCA)** for data-driven,
-objective weighting of components.
+The pipeline applies **vulnerability-aligned feature engineering** (ensuring higher values consistently indicate higher
+vulnerability), **nonlinear transformations** (inverse-log and log (1+x) to model diminishing returns of resources), and
+**Principal Component Analysis (PCA)** for data-driven, objective weighting of components.
 
 ### Stage 2 — Agent-Based Model (ABM)
 
@@ -78,10 +71,10 @@ The SVI directly parameterizes each agent's behavioral rules:
 - **Speed multiplier**: higher SVI → reduced effective travel speed
 - **Patience threshold**: higher SVI → lower tolerance for congestion before failing to reroute
 
-Agents navigate a multi-modal network (OpenStreetMap road/walk/bike graphs +
-IDFM GTFS public transit timetables) across a **50 km evacuation radius**
-centered on Paris over a **3-hour simulation horizon**. The simulation was run
-across **48 parameterized configurations**.
+Agents navigate a multi-modal network (OpenStreetMap road/walk/bike graphs + IDFM GTFS public transit timetables) across
+a **50 km evacuation radius**
+centered on Paris over a **3-hour simulation horizon**. The simulation was run across **48 parameterized
+configurations**.
 
 For full methodological details, see [`simulation/README.md`](simulation/README.md).
 
@@ -134,7 +127,7 @@ SEEM/
 │       ├── osmnx_layers/         Pre-built walk/bike/drive GraphML networks
 │       └── osm_chunks_pyrosm/    Raw OSM extracts for Île-de-France
 │
-├── analysis/                     Post-simulation analysis code
+├── analysis/                     Pre & Post-simulation analysis code
 │   ├── notebooks/
 │   │   ├── evacuation_results_analysis.ipynb Equity gap analysis
 │   │   ├── public_transport_network.ipynb    GTFS network investigation
@@ -170,15 +163,13 @@ SEEM/
 
 This repository is designed for full research reproducibility.
 
-The simulation was executed across **48 parameterized runs**. Per-run metadata
-is stored in `outputs/simulation_runs/evacuation_simulation_{1..48}/`, with
-`info.json` and `parameters_constants.json` documenting the exact configuration
-for each run.
+The simulation was executed across **48 parameterized runs**. Per-run metadata is stored in
+`outputs/simulation_runs/evacuation_simulation_{1..48}/`, with
+`info.json` and `parameters_constants.json` documenting the exact configuration for each run.
 
 The aggregate results used in the paper are in
 `outputs/agent_states/simulation_outcomes/`. All analysis notebooks in
-`analysis/` reproduce the paper's figures from these CSVs and can be re-run
-independently.
+`analysis/` reproduce the paper's figures from these CSVs and can be re-run independently.
 
 Interactive choropleth and evacuation trace maps are available locally at
 `outputs/figures/evacuation_maps/` <!--and archived on
@@ -196,8 +187,7 @@ browsing without local setup.-->
 
 ## Installation
 
-This project uses [uv](https://github.com/astral-sh/uv) for fast, reproducible
-dependency management.
+This project uses [uv](https://github.com/astral-sh/uv) for fast, reproducible dependency management.
 
 ```bash
 # 1. Clone the repository
@@ -213,16 +203,16 @@ pip install -e .
 
 ### Core dependencies
 
-| Package                  | Role                                              |
-|--------------------------|---------------------------------------------------|
-| `agentpy`                | Agent-Based Modeling (ABM) framework              |
-| `r5py`                   | Multi-modal routing engine (transit, bike, walk)  |
-| `osmnx`                  | OpenStreetMap network download and analysis       |
-| `geopandas` / `pyrosm`   | Geospatial data processing and OSM parsing        |
-| `scikit-learn`           | PCA and t-SNE for SVI and reduction analysis      |
-| `pandas` / `polars`      | High-performance tabular data processing          |
-| `matplotlib` / `seaborn` | Static data visualization and plotting            |
-| `folium`                 | Interactive map and agent trace generation        |
+| Package                  | Role                                             |
+|--------------------------|--------------------------------------------------|
+| `agentpy`                | Agent-Based Modeling (ABM) framework             |
+| `r5py`                   | Multi-modal routing engine (transit, bike, walk) |
+| `osmnx`                  | OpenStreetMap network download and analysis      |
+| `geopandas` / `pyrosm`   | Geospatial data processing and OSM parsing       |
+| `scikit-learn`           | PCA and t-SNE for SVI and reduction analysis     |
+| `pandas` / `polars`      | High-performance tabular data processing         |
+| `matplotlib` / `seaborn` | Static data visualization and plotting           |
+| `folium`                 | Interactive map and agent trace generation       |
 
 ---
 
@@ -234,9 +224,8 @@ pip install -e .
 python -c "from simulation.preparing_resources import prepare_all; prepare_all()"
 ```
 
-This validates and caches the OSM network layers (walk, bike, drive) and GTFS
-transit data. **Skip this step** if `data/maps/osmnx_layers/` already contains
-the pre-built `.graphml` files (included in the repository).
+This validates and caches the OSM network layers (walk, bike, drive) and GTFS transit data. **Skip this step** if
+`data/maps/osmnx_layers/` already contains the pre-built `.graphml` files (included in the repository).
 
 ### Step 2 — Construct the SVI
 
@@ -246,9 +235,8 @@ Open and run `analysis/notebooks/social_vulnerability_analysis.ipynb` in Jupyter
 jupyter notebook analysis/notebooks/social_vulnerability_analysis.ipynb
 ```
 
-This notebook loads the NetMob25 individual-level data, applies feature
-engineering and nonlinear transforms, runs PCA, and writes per-agent SVI scores.
-It also produces the SVI distribution figures in `outputs/figures/svi_analysis/`.
+This notebook loads the NetMob25 individual-level data, applies feature engineering and nonlinear transforms, runs PCA,
+and writes per-agent SVI scores. It also produces the SVI distribution figures in `outputs/figures/svi_analysis/`.
 
 ### Step 3 — Run the simulation
 
@@ -256,8 +244,8 @@ It also produces the SVI distribution figures in `outputs/figures/svi_analysis/`
 python scripts/main.py --config simulation/configs/evacuation_simulation.json
 ```
 
-Results are written to `outputs/simulation_runs/` and `outputs/agent_states/`.
-Estimated runtime: 10–60 minutes per run depending on hardware (48 total runs).
+Results are written to `outputs/simulation_runs/` and `outputs/agent_states/`. Estimated runtime: 10–60 minutes per run
+depending on hardware (48 total runs).
 
 ### Step 4 — Analyze results
 
@@ -273,8 +261,8 @@ jupyter notebook analysis/notebooks/evacuation_results_analysis.ipynb
 
 ## Results
 
-All outputs are **pre-generated and included** in this repository. You do not
-need to re-run the simulation to inspect results.
+All outputs are **pre-generated and included** in this repository. You do not need to re-run the simulation to inspect
+results.
 
 ### Key output files
 
@@ -321,9 +309,8 @@ If you use this code, methodology, or results, please cite:
 
 This repository is released under the **MIT License**. See [`LICENSE`](LICENSE) for full terms.
 
-The **NetMob25 dataset** is subject to its own data-use agreement and is not
-redistributed here. The **IDFM GTFS timetables** are sourced from the IDFM Open
-Data platform under their open license. OpenStreetMap data © OpenStreetMap
+The **NetMob25 dataset** is subject to its own data-use agreement and is not redistributed here. The **IDFM GTFS
+timetables** are sourced from the IDFM Open Data platform under their open license. OpenStreetMap data © OpenStreetMap
 contributors (ODbL).
 
 ---
