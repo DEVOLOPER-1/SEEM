@@ -1,8 +1,7 @@
 # simulation/ — ABM Module Guide
 
-This directory contains the Agent-Based Model (ABM) that implements Stage 2 of
-the SEEM methodology: simulating large-scale emergency evacuation in
-Île-de-France with Social Vulnerability Index (SVI)-driven agent behavior.
+This directory contains the Agent-Based Model (ABM) that implements Stage 2 of the SEEM methodology: simulating
+large-scale emergency evacuation in Île-de-France with Social Vulnerability Index (SVI)-driven agent behavior.
 
 For the full project overview, see the [root README](../README.md).
 
@@ -15,8 +14,8 @@ For the full project overview, see the [root README](../README.md).
 python scripts/main.py
 ```
 
-Expected runtime: 10–60 minutes per run depending on hardware and agent count.
-Progress is logged per simulation time step.
+Expected runtime: 10–60 minutes per run depending on hardware and agent count. Progress is logged per simulation time
+step.
 
 Results are written to:
 
@@ -29,69 +28,62 @@ Results are written to:
 
 ## Module Interaction Map
 
-The simulation has a clear dependency chain from data loading through to metrics
-export:
+The simulation has a clear dependency chain from data loading through to metrics export:
 
 ```
 scripts/main.py                          ← entry point
     │
-    ├─ reads: simulation/configs/evacuation_simulation.json
-    │         (scenario parameters, SVI behavioral mappings, output paths)
+    ├─ defines: scenario parameters (center coords, 50 km radius, SVI speed & delay factors)
+    ├─ reads:   data/agents_svi_scores.csv (SVI scores) & data/maps/osmnx_layers/ (networks & amenities)
     │
-    ├─ calls: simulation/preparing_resources.py
-    │         └─ loads OSM GraphML networks into memory
-    │            (data/maps/osmnx_layers/*.graphml)
-    │         └─ validates IDFM GTFS timetables
-    │            (data/maps/IDFM-gtfs/*.csv)
+    ├─ calls: simulation/space/evacuation_area_initializer.py (EnvironmentInitializer)
+    │         └─ builds the 50 km evacuation zone polygon around Paris
     │
-    ├─ calls: simulation/space/pre_process_amenities.py
-    │         └─ builds an index of shelters, schools, hospitals
-    │            from OSM amenity data
-    │            (data/maps/osmnx_layers/idf_amenities.csv)
+    ├─ calls: simulation/model/agents_model_initializer.py (AgentsGatherer)
+    │         └─ filters survey individuals in evacuation zone & joins SVI scores
+    │         └─ writes data/mesa_initializers.csv
     │
-    ├─ calls: simulation/space/evacuation_area_initializer.py
-    │         └─ defines the 50 km evacuation zone centred on Paris
-    │         └─ assigns each agent a target safe destination
-    │         └─ uses pre-computed geometry cache
-    │            (simulation/space/cache/*.json)
+    ├─ calls: simulation/model/evacuation_model.py (run_simulation)
+    │         └─ instantiates EvacuationAgent objects & executes N time steps
+    │         │
+    │         Each agent per time step:
+    │         ├─ checks activation delay (SVI-driven)
+    │         ├─ selects mode (walk / bike / drive / PT)
+    │         ├─ routes via shortest path on mode-appropriate network
+    │         ├─ updates position, speed, and patience state
+    │         └─ transitions to ARRIVED / EVACUATING / FAILED
     │
-    └─ calls: simulation/model/agents_model_initializer.py
-              └─ reads SVI scores and mode assignments from config
-              └─ instantiates one EvacuationAgent per individual
-                 (simulation/model/evacuation_model.py)
-                 │
-                 Each agent per time step:
-                 ├─ checks activation delay (SVI-driven)
-                 ├─ selects mode (walk / bike / MPV / PT)
-                 ├─ routes via Dijkstra on the mode-appropriate GraphML
-                 ├─ updates position, distance, congestion state
-                 └─ transitions to ARRIVED / EVACUATING / FAILED
-              │
-              └─ calls at run end: simulation/model/simulation_analytics.py
-                                   └─ computes equity metrics per SVI quartile
-                                   └─ writes CSVs to outputs/agent_states/
-                                   └─ writes figures to outputs/figures/
+    ├─ writes: simulation/configs/evacuation_simulation.json & simulation_summary.json (run metadata)
+    │
+    └─ calls: simulation/model/simulation_analytics.py (SimulationAnalytics)
+              └─ computes equity gap metrics across SVI quartiles
+              └─ exports CSVs to outputs/agent_states/ and figures to outputs/figures/
 ```
 
 ### Execution flow summary
 
-| Step | Module                           | Action                                    |
-|------|----------------------------------|-------------------------------------------|
-| 1    | `preparing_resources.py`         | Load and validate all network data        |
-| 2    | `pre_process_amenities.py`       | Build shelter/destination index           |
-| 3    | `evacuation_area_initializer.py` | Define zone, assign destinations          |
-| 4    | `agents_model_initializer.py`    | Filter & instantiate active evacuation agents (590 agents in zone out of 3,337 survey individuals) |
-| 5    | `evacuation_model.py` (×N steps) | Simulate each agent per time step         |
-| 6    | `simulation_analytics.py`        | Export results and generate figures       |
+| Step | Module                           | Action                                                                                                                  |
+|------|----------------------------------|-------------------------------------------------------------------------------------------------------------------------|
+| 1    | `preparing_resources.py`         | Load and validate all network data                                                                                      |
+| 2    | `pre_process_amenities.py`       | Build shelter/destination index                                                                                         |
+| 3    | `evacuation_area_initializer.py` | Define zone                                                                                                             |
+| 4    | `agents_model_initializer.py`    | Filter & instantiate active evacuation agents (590 agents in zone out of 3,337 survey individuals), assign destinations |
+| 5    | `evacuation_model.py` (×N steps) | Simulate each agent per time step                                                                                       |
+| 6    | `simulation_analytics.py`        | Export results and generate figures                                                                                     |
 
 ---
 
 ## Configuration & Output Flow
 
-The simulation configuration and run metadata are automatically generated and saved to `simulation/configs/evacuation_simulation.json` at the conclusion of each simulation run by `scripts/main.py` (via AgentPy's `results.save()` / `save_results_manually()`).
+The simulation configuration and run metadata are automatically generated and saved to
+`simulation/configs/evacuation_simulation.json` at the conclusion of each simulation run by `scripts/main.py` (via
+AgentPy's `results.save()` / `save_results_manually()`).
 
 > [!NOTE]
-> **Agent Population Filtering**: While `data/individuals_dataset.csv` contains 3,337 total survey individuals (~3,300+ full NetMob25 survey scale), `AgentsGatherer` filters for individuals who have valid, active GPS traces located **inside the active 50 km evacuation zone polygon** around Paris on the scenario date. This produces 590 active agents (`created_objects: 590`) in the simulation run.
+> **Agent Population Filtering**: While `data/individuals_dataset.csv` contains 3,337 total survey individuals (~3,300+
+full NetMob25 survey scale), `AgentsGatherer` filters for individuals who have valid, active GPS traces located **inside
+the active 50 km evacuation zone polygon** around Paris on the scenario date. This produces 590 active agents
+(`created_objects: 590`) in the simulation run.
 
 ### Key configuration and metadata structure (`evacuation_simulation.json`)
 
@@ -218,25 +210,30 @@ Agent terminal states are defined as:
 
 ### Modifying scenario parameters
 
-Scenario parameters (such as simulation steps, center latitude/longitude, evacuation radius, and network paths) are defined in `scripts/main.py` and passed into `run_simulation(parameters)`. To run a custom scenario:
+Scenario parameters (such as simulation steps, center latitude/longitude, evacuation radius, and network paths) are
+defined in `scripts/main.py` and passed into `run_simulation(parameters)`. To run a custom scenario:
 
-1. Update or parameterize the `parameters` dictionary in `scripts/main.py` (e.g. adjust `MAX_SIMULATION_STEPS` or `SCENARIO_RADIUS_KM`).
+1. Update or parameterize the `parameters` dictionary in `scripts/main.py` (e.g. adjust `MAX_SIMULATION_STEPS` or
+   `SCENARIO_RADIUS_KM`).
 2. Run `python scripts/main.py`.
-3. The run metadata and execution output will automatically save to `simulation/configs/evacuation_simulation.json` and `simulation/configs/simulation_summary.json`.
+3. The run metadata and execution output will automatically save to `simulation/configs/evacuation_simulation.json` and
+   `simulation/configs/simulation_summary.json`.
 
 ### Modifying SVI behavioral parameters
 
-Edit the behavioral parameter constants in `scripts/main.py` or `simulation/model/evacuation_model.py`. The parameters (`svi_speed_penalty`, `max_svi_start_delay_s`, `base_patience_s`) control SVI-driven behavior:
+Edit the behavioral parameter constants in `scripts/main.py` or `simulation/model/evacuation_model.py`. The parameters
+(`svi_speed_penalty`, `max_svi_start_delay_s`, `base_patience_s`) control SVI-driven behavior:
 
-| Parameter               | Description                                                                      | SVI effect                 |
-|-------------------------|----------------------------------------------------------------------------------|----------------------------|
-| `max_svi_start_delay_s` | Seconds before an agent begins evacuating after the crisis event                 | Higher SVI → longer delay  |
-| `svi_speed_penalty`     | Speed penalty factor applied to maximum agent velocity                           | Higher SVI → slower        |
+| Parameter               | Description                                                                         | SVI effect                 |
+|-------------------------|-------------------------------------------------------------------------------------|----------------------------|
+| `max_svi_start_delay_s` | Seconds before an agent begins evacuating after the crisis event                    | Higher SVI → longer delay  |
+| `svi_speed_penalty`     | Speed penalty factor applied to maximum agent velocity                              | Higher SVI → slower        |
 | `base_patience_s`       | Base patience before an agent triggers fallback/rerouting due to network congestion | Higher SVI → less tolerant |
 
 ### Modifying agent step logic
 
-The per-timestep agent behavior is in `simulation/model/evacuation_model.py`, in the `step()` method. The logic sequence is:
+The per-timestep agent behavior is in `simulation/model/evacuation_model.py`, in the `step()` method. The logic sequence
+is:
 
 ```
 step():
@@ -250,16 +247,16 @@ step():
 ### Adding a new transportation mode
 
 1. Prepare the mode's OSM network and save it to `data/maps/osmnx_layers/` as a `.graphml` file.
-2. Register the mode extraction in `IleDeFranceMobilityDataCollector.ile_de_france_open_street_map_()` in `simulation/preparing_resources.py` (adding it to the `networks` list).
+2. Register the mode extraction in `IleDeFranceMobilityDataCollector.ile_de_france_open_street_map_()` in
+   `simulation/preparing_resources.py` (adding it to the `networks` list).
 3. Pass the graphml file path to `parameters` in `scripts/main.py`.
 4. Handle the new mode in the agent `step()` logic in `simulation/model/evacuation_model.py`.
 
 ### Adding new equity metrics
 
-Extend `simulation/model/simulation_analytics.py`. The analytics module receives
-the full agent population as a list of `EvacuationAgent` objects at run end and
-can compute any derived metric from their attributes. Add a new function and call
-it from the `run_analytics()` entry point.
+Extend `simulation/model/simulation_analytics.py`. The analytics module receives the full agent population as a list of
+`EvacuationAgent` objects at run end and can compute any derived metric from their attributes. Add a new function and
+call it from the `run_analytics()` entry point.
 
 ---
 
