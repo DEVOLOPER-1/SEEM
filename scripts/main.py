@@ -91,8 +91,13 @@ def main():
     SCENARIO_CENTER_LAT = 48.858844
     SCENARIO_CENTER_LON = 2.347012
     SCENARIO_RADIUS_KM = 50.0
-    MAX_SIMULATION_STEPS = 180
+    import os as _os
+    SMOKE = _os.environ.get("SEEM_SMOKE") == "1"
+    MAX_SIMULATION_STEPS = 5 if SMOKE else 180
+    AGENT_CAP = 100 if SMOKE else None
     DATA_DIR = str(Path(__file__).parent.parent / "data" / "maps" / "osmnx_layers") + "/"
+    if SMOKE:
+        print("[smoke] smoke-test mode: 5 steps, agent cap 100")
 
     print(f"--- SIMULATION STARTING --- {datetime.now()}")
 
@@ -113,6 +118,9 @@ def main():
 
     agents_gatherer.read_and_summarize_agents(fallback_to_full_trace=True, verbose=True)
     agents_df = pl.read_csv("data/mesa_initializers.csv")
+    if SMOKE and AGENT_CAP and agents_df.shape[0] > AGENT_CAP:
+        agents_df = agents_df.sample(n=AGENT_CAP, seed=20260916)
+        print(f"[smoke] agents capped to {AGENT_CAP}")
 
     if agents_df.is_empty():
         print(f"!!! No agents in evacuation zone !!! {datetime.now()}")

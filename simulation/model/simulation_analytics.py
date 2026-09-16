@@ -60,6 +60,12 @@ class SimulationAnalytics:
             record = {
                 "agent_id": agent.id,
                 "status": agent.status,
+                "end_state": getattr(agent, "end_state", None),
+                "arrived_at": str(getattr(agent, "arrived_at", None))
+                if getattr(agent, "arrived_at", None)
+                else None,
+                "ID": getattr(agent, "unique_id", None),
+                "SVI_normalized": getattr(agent, "svi", 0.0),
                 "SVI": getattr(agent, "svi", 0.0),
                 "main_mode": getattr(agent, "main_mode", "UNKNOWN"),
                 "evacuation_time": getattr(agent, "evacuation_time", 0),
