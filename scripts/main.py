@@ -129,7 +129,7 @@ def main():
     parameters = {
         "start_datetime": datetime(2023, 1, 1, 8, 0, 0),  # Simulation start time
         "step_seconds": 60,  # 1 minute per step
-        "svi_speed_penalty": 0.5,
+        "svi_speed_penalty": 0.3,
         "max_svi_start_delay_s": 1800,  # 30 minutes max delay
         "base_patience_s": 300,  # 5 minutes base patience
         "graphml_path_drive": DATA_DIR + "IDF_drive_network.graphml",
