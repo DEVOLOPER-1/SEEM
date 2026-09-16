@@ -1,0 +1,140 @@
+{
+ "n_agents": 153,
+ "seed": 20260916,
+ "method_note": "canonical run, one entity per participant, 180x60s, seed 20260916",
+ "end_state_partition": {
+  "FAILED": 9,
+  "CENSORED_AT_HORIZON": 132,
+  "ARRIVED": 12
+ },
+ "completion": {
+  "method": "Wilson score interval, 95%",
+  "first_record": {
+   "events": 12,
+   "n": 153,
+   "rate_pct": 7.84,
+   "ci95": [
+    4.54,
+    13.21
+   ]
+  },
+  "any_arrival": {
+   "events": 12,
+   "n": 153,
+   "rate_pct": 7.84,
+   "ci95": [
+    4.54,
+    13.21
+   ]
+  },
+  "all_records": {
+   "events": 12,
+   "n": 153,
+   "rate_pct": 7.84,
+   "ci95": [
+    4.54,
+    13.21
+   ]
+  }
+ },
+ "quartiles": {
+  "method": "linear interpolation, participant-level (one record per participant)",
+  "Q1": 0.5007,
+  "Q2": 0.5674,
+  "Q3": 0.6442
+ },
+ "band_end_state": {
+  "Low": {
+   "CENSORED_AT_HORIZON": 35,
+   "FAILED": 1,
+   "ARRIVED": 3
+  },
+  "Moderate": {
+   "CENSORED_AT_HORIZON": 29,
+   "FAILED": 3,
+   "ARRIVED": 6
+  },
+  "High": {
+   "FAILED": 3,
+   "CENSORED_AT_HORIZON": 35
+  },
+  "Very High": {
+   "CENSORED_AT_HORIZON": 33,
+   "FAILED": 2,
+   "ARRIVED": 3
+  }
+ },
+ "ffh_test": {
+  "method": "Fisher-Freeman-Halton Monte Carlo, 200000 draws, seed 20260916",
+  "chi2": 6.555,
+  "p_mc": 0.0901,
+  "asymptotic_method": "Wilson-Hilferty approx to chi2(3)",
+  "p_asymptotic": 0.086,
+  "cramers_v": 0.207
+ },
+ "logistic_or": {
+  "method": "univariable logistic regression, profile-likelihood 95% CI",
+  "n_events": 12,
+  "n": 153,
+  "OR_per_0.1_SVI": 0.889,
+  "ci95": [
+   0.596,
+   1.326
+  ]
+ },
+ "mode_completion": {
+  "BIKE": {
+   "events": 0,
+   "n": 21,
+   "rate_pct": 0.0,
+   "ci95": [
+    -0.0,
+    15.46
+   ]
+  },
+  "CAR": {
+   "events": 12,
+   "n": 53,
+   "rate_pct": 22.64,
+   "ci95": [
+    13.45,
+    35.53
+   ]
+  },
+  "WALKING": {
+   "events": 0,
+   "n": 79,
+   "rate_pct": 0.0,
+   "ci95": [
+    -0.0,
+    4.64
+   ]
+  }
+ },
+ "km_by_band": {
+  "method": "Kaplan-Meier, horizon censoring at 180 min",
+  "bands": {
+   "Low": {
+    "median_min": "not estimable",
+    "n_events": 3,
+    "n": 39
+   },
+   "Moderate": {
+    "median_min": "not estimable",
+    "n_events": 6,
+    "n": 38
+   },
+   "High": {
+    "median_min": "not estimable",
+    "n_events": 0,
+    "n": 38
+   },
+   "Very High": {
+    "median_min": "not estimable",
+    "n_events": 3,
+    "n": 38
+   }
+  }
+ },
+ "bottleneck_note": "bottleneck log empty for this run (no edge exceeded C_e>1 with 153 agents); diagnostic deferred to higher-density runs"
+}

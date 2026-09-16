@@ -3307,6 +3307,10 @@ def run_simulation(parameters: Dict[str, Any]) -> Tuple[EvacuationModel, Any]:
     # Run simulation
     results = model.run(steps=parameters.get("steps", 60), display=True)
 
+    # Canonical event semantics BEFORE export (v2 plan §2.2/§5-G2)
+    if hasattr(model, "finalize_horizon"):
+        model.finalize_horizon()
+
     # Collect agent paths data after simulation
     agent_paths_df = model.collect_agent_paths_data()
 

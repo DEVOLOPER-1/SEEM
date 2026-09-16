@@ -1,5 +1,5 @@
 {
-  "git_commit": "6bd2a6d52bb41ce33c8c570af6b07b97e01f338d",
+  "git_commit": "73638f34cd2ba974ea42fe46d0fb3ecac575ef70",
   "seed": 20260916,
   "config": {
     "seed": 20260916,
@@ -11,7 +11,7 @@
     "graphml_path_drive": "/home/youssef/projects/Sim-Equity/data/maps/osmnx_layers/IDF_drive_network.graphml",
     "graphml_path_walk": "/home/youssef/projects/Sim-Equity/data/maps/osmnx_layers/IDF_walk_network.graphml",
     "graphml_path_cycle": "/home/youssef/projects/Sim-Equity/data/maps/osmnx_layers/IDF_bike_network.graphml",
-    "steps": 5,
+    "steps": 180,
     "use_public_transport": true,
     "osm_pbf_path": "/home/youssef/projects/Sim-Equity/data/maps/osmnx_layers/ile-de-france-250902.osm.pbf",
     "gtfs_zip_path": "/home/youssef/projects/Sim-Equity/data/maps/osmnx_layers/IDFM-gtfs.zip"
@@ -23,10 +23,10 @@
     "gtfs": "51e7ca0c14293480d1755fd37dd2e684cd849a72d3ac23e31cb9f37b0aef2255",
     "osm_pbf": "55a24c3ed1b5b8f6f10c224376383e47449f117e3f82c3a0cd2bbc1616f493e5"
   },
-  "n_agents": 100,
-  "steps": 5,
-  "started": 1789574422.7893965,
-  "ended": 1789575034.5105999,
+  "n_agents": 153,
+  "steps": 180,
+  "started": 1789578312.1169384,
+  "ended": 1789579149.5680907,
   "software": {
     "python": "3.13.14"
   }

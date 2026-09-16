@@ -1,17 +1,18 @@
 {
   "simulation_metadata": {
     "start_time": "2023-01-01T08:00:00",
-    "total_steps": 5,
+    "total_steps": 180,
     "step_duration_seconds": 60,
-    "total_agents": 100,
-    "completion_time_seconds": 611.721203327179
+    "total_agents": 153,
+    "completion_time_seconds": 837.4511523246765
   },
   "agent_status_summary": {
-    "EVACUATING": 97,
-    "FAILED": 2,
-    "PLANNING": 1
+    "EVACUATING": 133,
+    "FAILED": 8,
+    "ARRIVED": 12
   },
   "failure_reasons": {
-    "Could not find any safe destination": 2
+    "Could not find any safe destination": 7,
+    "Exceeded maximum replanning attempts (5)": 1
   }
 }
