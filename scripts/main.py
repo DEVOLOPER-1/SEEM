@@ -118,6 +118,14 @@ def main():
 
     agents_gatherer.read_and_summarize_agents(fallback_to_full_trace=True, verbose=True)
     agents_df = pl.read_csv("data/mesa_initializers.csv")
+    # CANONICAL (v2 plan §4.1): ONE simulation entity per retained participant.
+    # The gatherer emits one row per (trip, fallback) match; deduplicate to one row
+    # per participant ID (first occurrence = closest scenario-clock match from the
+    # primary window, since the gatherer appends in search order).
+    if agents_df.shape[0] > 0 and "ID" in agents_df.columns:
+        n_before = agents_df.shape[0]
+        agents_df = agents_df.unique(subset=["ID"], keep="first", maintain_order=True)
+        print(f"[canonical] participant dedup: {n_before} -> {agents_df.shape[0]} agents")
     if SMOKE and AGENT_CAP and agents_df.shape[0] > AGENT_CAP:
         agents_df = agents_df.sample(n=AGENT_CAP, seed=20260916)
         print(f"[smoke] agents capped to {AGENT_CAP}")
