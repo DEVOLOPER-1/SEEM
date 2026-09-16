@@ -4,15 +4,15 @@
     "total_steps": 180,
     "step_duration_seconds": 60,
     "total_agents": 153,
-    "completion_time_seconds": 837.4511523246765
+    "completion_time_seconds": 784.8855707645416
   },
   "agent_status_summary": {
-    "EVACUATING": 133,
-    "FAILED": 8,
-    "ARRIVED": 12
+    "EVACUATING": 135,
+    "FAILED": 7,
+    "ARRIVED": 11
   },
   "failure_reasons": {
-    "Could not find any safe destination": 7,
-    "Exceeded maximum replanning attempts (5)": 1
+    "Exceeded maximum replanning attempts (5)": 1,
+    "Could not find any safe destination": 6
   }
 }

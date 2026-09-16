@@ -1,4 +1,7 @@
 # FILE: main.py
+import os as _os
+_os.environ.setdefault("PYTHONHASHSEED", "20260916")  # canonical: bit-reproducible hashing
+
 import gc
 import json
 import os

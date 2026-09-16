@@ -1,5 +1,5 @@
 {
-  "git_commit": "73638f34cd2ba974ea42fe46d0fb3ecac575ef70",
+  "git_commit": "301a0e679a6719a1a9d7383d900481a0457e1cd6",
   "seed": 20260916,
   "config": {
     "seed": 20260916,
@@ -25,8 +25,8 @@
   },
   "n_agents": 153,
   "steps": 180,
-  "started": 1789578312.1169384,
-  "ended": 1789579149.5680907,
+  "started": 1789583115.5989752,
+  "ended": 1789583900.484546,
   "software": {
     "python": "3.13.14"
   }

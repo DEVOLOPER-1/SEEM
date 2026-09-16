@@ -137,6 +137,10 @@ class AgentsGatherer:
                 "end_datetime",
             ]
         )
+        # CANONICAL (fix_plan_v3 §5): deterministic iteration order across processes.
+        # polars hash-order is not guaranteed stable across runs; sort explicitly so that
+        # per-participant row order (and hence keep="first" dedup) is bit-reproducible.
+        gps_df = gps_df.sort(["ID", "start_datetime", "Main_Mode"])
         gc.collect()
         return gps_df
 
