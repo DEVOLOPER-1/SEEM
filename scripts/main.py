@@ -127,6 +127,10 @@ def main():
     # primary window, since the gatherer appends in search order).
     if agents_df.shape[0] > 0 and "ID" in agents_df.columns:
         n_before = agents_df.shape[0]
+        # CANONICAL (final round): full deterministic row order before dedup — the gatherer emits
+        # one row per (trip, window match); sort by ID + all distinguishing columns so keep="first"
+        # is bit-reproducible across processes.
+        agents_df = agents_df.sort(["ID", "start_datetime", "Main_Mode", "start_lat", "start_lon"])
         agents_df = agents_df.unique(subset=["ID"], keep="first", maintain_order=True)
         print(f"[canonical] participant dedup: {n_before} -> {agents_df.shape[0]} agents")
     if SMOKE and AGENT_CAP and agents_df.shape[0] > AGENT_CAP:
