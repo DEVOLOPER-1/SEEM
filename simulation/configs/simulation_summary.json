@@ -4,12 +4,12 @@
     "total_steps": 180,
     "step_duration_seconds": 60,
     "total_agents": 153,
-    "completion_time_seconds": 575.7059595584869
+    "completion_time_seconds": 583.3305771350861
   },
   "agent_status_summary": {
-    "EVACUATING": 137,
-    "FAILED": 6,
-    "ARRIVED": 10
+    "EVACUATING": 136,
+    "ARRIVED": 11,
+    "FAILED": 6
   },
   "failure_reasons": {
     "Could not find any safe destination": 6

@@ -3,37 +3,37 @@
  "seed": 20260916,
  "method_note": "canonical run, one entity per participant, 180x60s, seed 20260916",
  "end_state_partition": {
-  "FAILED": 9,
-  "CENSORED_AT_HORIZON": 132,
-  "ARRIVED": 12
+  "CENSORED_AT_HORIZON": 136,
+  "ARRIVED": 11,
+  "FAILED": 6
  },
  "completion": {
   "method": "Wilson score interval, 95%",
   "first_record": {
-   "events": 12,
+   "events": 11,
    "n": 153,
-   "rate_pct": 7.84,
+   "rate_pct": 7.19,
    "ci95": [
-    4.54,
-    13.21
+    4.06,
+    12.41
    ]
   },
   "any_arrival": {
-   "events": 12,
+   "events": 11,
    "n": 153,
-   "rate_pct": 7.84,
+   "rate_pct": 7.19,
    "ci95": [
-    4.54,
-    13.21
+    4.06,
+    12.41
    ]
   },
   "all_records": {
-   "events": 12,
+   "events": 11,
    "n": 153,
-   "rate_pct": 7.84,
+   "rate_pct": 7.19,
    "ci95": [
-    4.54,
-    13.21
+    4.06,
+    12.41
    ]
   }
  },
@@ -45,41 +45,40 @@
  },
  "band_end_state": {
   "Low": {
-   "CENSORED_AT_HORIZON": 35,
-   "FAILED": 1,
+   "CENSORED_AT_HORIZON": 36,
    "ARRIVED": 3
   },
   "Moderate": {
-   "CENSORED_AT_HORIZON": 29,
-   "FAILED": 3,
-   "ARRIVED": 6
+   "CENSORED_AT_HORIZON": 30,
+   "ARRIVED": 6,
+   "FAILED": 2
   },
   "High": {
-   "FAILED": 3,
-   "CENSORED_AT_HORIZON": 35
+   "CENSORED_AT_HORIZON": 36,
+   "FAILED": 2
   },
   "Very High": {
-   "CENSORED_AT_HORIZON": 33,
-   "FAILED": 2,
-   "ARRIVED": 3
+   "CENSORED_AT_HORIZON": 34,
+   "ARRIVED": 2,
+   "FAILED": 2
   }
  },
  "ffh_test": {
   "method": "Fisher-Freeman-Halton Monte Carlo, 200000 draws, seed 20260916",
-  "chi2": 6.555,
-  "p_mc": 0.0901,
+  "chi2": 7.382,
+  "p_mc": 0.0579,
   "asymptotic_method": "Wilson-Hilferty approx to chi2(3)",
-  "p_asymptotic": 0.086,
-  "cramers_v": 0.207
+  "p_asymptotic": 0.0596,
+  "cramers_v": 0.22
  },
  "logistic_or": {
   "method": "univariable logistic regression, profile-likelihood 95% CI",
-  "n_events": 12,
+  "n_events": 11,
   "n": 153,
-  "OR_per_0.1_SVI": 0.889,
+  "OR_per_0.1_SVI": 0.78,
   "ci95": [
-   0.596,
-   1.326
+   0.523,
+   1.164
   ]
  },
  "mode_completion": {
@@ -93,21 +92,21 @@
    ]
   },
   "CAR": {
-   "events": 12,
-   "n": 53,
-   "rate_pct": 22.64,
+   "events": 11,
+   "n": 60,
+   "rate_pct": 18.33,
    "ci95": [
-    13.45,
-    35.53
+    10.56,
+    29.92
    ]
   },
   "WALKING": {
    "events": 0,
-   "n": 79,
+   "n": 72,
    "rate_pct": 0.0,
    "ci95": [
-    -0.0,
-    4.64
+    0.0,
+    5.07
    ]
   }
  },
@@ -131,7 +130,7 @@
    },
    "Very High": {
     "median_min": "not estimable",
-    "n_events": 3,
+    "n_events": 2,
     "n": 38
    }
   }
