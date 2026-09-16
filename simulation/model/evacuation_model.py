@@ -79,6 +79,9 @@ class EvacuationAgent(ap.Agent):
             "time_on_current_edge_s": 0.0,
             "time_stuck_s": 0.0,
             "evacuation_time": 0.0,
+            # Event semantics (canonical run): valid event time only for ARRIVED
+            "arrived_at": None,
+            "end_state": None,  # ARRIVED | CENSORED_AT_HORIZON | FAILED
             # Navigation
             "path": [],
             "target_node": None,
@@ -680,6 +683,8 @@ class EvacuationAgent(ap.Agent):
             # Check if we've reached destination
             if self.current_pos_node == self.target_node:
                 self.status = "ARRIVED"
+                self.arrived_at = self.model.sim_time
+                self.end_state = "ARRIVED"
                 print(f"Agent {self.unique_id}: Arrived at destination")
             else:
                 self._fail_agent("No valid path and not at destination")
@@ -737,6 +742,8 @@ class EvacuationAgent(ap.Agent):
                 self.current_pos_node = self.target_node
 
             self.status = "ARRIVED"
+            self.arrived_at = self.model.sim_time
+            self.end_state = "ARRIVED"
             print(f"Agent {self.unique_id}: Completed multi-modal journey")
             self._add_position_to_history()
             return
@@ -792,6 +799,8 @@ class EvacuationAgent(ap.Agent):
                     self.current_pos_node = self.target_node
 
                 self.status = "ARRIVED"
+                self.arrived_at = self.model.sim_time
+                self.end_state = "ARRIVED"
                 print(f"Agent {self.unique_id}: Multi-modal journey complete - ARRIVED")
             else:
                 # Move to next segment
@@ -973,6 +982,7 @@ class EvacuationAgent(ap.Agent):
         """
         print(f"Agent {self.unique_id}: FAILED - {reason}")
         self.status = "FAILED"
+        self.end_state = "FAILED"
         self.fail_reason = reason
         self._add_position_to_history()
 
@@ -1278,6 +1288,23 @@ class EvacuationModel(ap.Model):
 
         # Log progress
         self._log_step_progress(time.time() - step_start)
+
+    def finalize_horizon(self) -> None:
+        """Canonical event semantics: censor active non-arrivals at the horizon.
+
+        Marks every agent still EVACUATING (or INACTIVE/PLANNING) as
+        CENSORED_AT_HORIZON with no arrived_at event time. FAILED agents keep
+        their absorbing structural-failure semantics. ARRIVED agents keep their
+        valid arrived_at event time recorded at the arrival step.
+        """
+        n_censored = 0
+        for agent in self.agents:
+            if agent.status in ("EVACUATING", "INACTIVE", "PLANNING"):
+                agent.end_state = "CENSORED_AT_HORIZON"
+                agent.arrived_at = None
+                n_censored += 1
+        print(f"[canonical] Horizon censoring: {n_censored} agents "
+              f"marked CENSORED_AT_HORIZON")
 
     def _analyze_bottlenecks(self) -> None:
         """Analyze and log traffic congestion bottlenecks."""
@@ -2399,6 +2426,42 @@ class EvacuationModel(ap.Model):
                 print(f"Validation error: {e}")
                 continue
 
+        # CANONICAL (v2 plan §2.4): transit-leg semantics validation.
+        # - Any row labeled TRANSIT*/BUS/TRAIN/METRO/SUBWAY/TRAMWAY must have
+        #   route_id + start_stop_id + end_stop_id + feed populated.
+        # - Durations must be in SECONDS and <= 180*60 s horizon; over-horizon
+        #   rows are dropped and logged (the 590-run defect: 336/338 > horizon).
+        _TRANSIT_LABELS = {
+            "TRANSIT", "BUS", "TRAIN", "TRAIN_EXPRESS", "METRO", "SUBWAY",
+            "TRAMWAY", "TRANSITMODE.TRANSIT",
+        }
+        _HORIZON_S = 180 * 60
+        _dropped_transit = 0
+        canonical_segments = []
+        for seg_row in validated_journey_segments:
+            mode = (seg_row.get("transport_mode") or "").upper()
+            is_transit = mode in _TRANSIT_LABELS
+            dur_min = seg_row.get("travel_time_minutes") or 0.0
+            dur_s = dur_min * 60.0
+            if is_transit:
+                ids_ok = all(
+                    seg_row.get(k) not in (None, "", "None")
+                    for k in ("route_id", "start_stop_id", "end_stop_id", "feed")
+                )
+                if not ids_ok:
+                    _dropped_transit += 1
+                    continue  # unpopulated transit IDs -> invalid leg, drop
+            if dur_s > _HORIZON_S:
+                _dropped_transit += 1 if is_transit else 0
+                continue  # over-horizon duration -> invalid, drop
+            canonical_segments.append(seg_row)
+        if _dropped_transit:
+            print(
+                f"[canonical] Journey validation: dropped {_dropped_transit} "
+                f"invalid transit/over-horizon segments"
+            )
+        validated_journey_segments = canonical_segments
+
         # Create DataFrames with proper error handling
         try:
             self.agent_paths_df = (
@@ -2634,6 +2697,12 @@ class EvacuationModel(ap.Model):
         return {
             "agent_id": str(agent.unique_id),
             "svi": float(getattr(agent, "svi", 0.0)),
+            "arrived_at": str(getattr(agent, "arrived_at", None))
+            if getattr(agent, "arrived_at", None)
+            else None,
+            "end_state": str(getattr(agent, "end_state", None))
+            if getattr(agent, "end_state", None)
+            else None,
             "original_mode": str(
                 getattr(agent, "original_mode", getattr(agent, "main_mode", "UNKNOWN"))
             ),
@@ -3068,6 +3137,7 @@ class EvacuationModel(ap.Model):
                         f"({lat:.6f}, {lon:.6f}) is still in evacuation area!"
                     )
                     agent.status = "FAILED"
+                    agent.end_state = "FAILED"
                     agent.fail_reason = (
                         "Position validation failed - still in evacuation area"
                     )

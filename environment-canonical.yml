@@ -1,0 +1,21 @@
+name: seem-canonical
+channels: [conda-forge]
+dependencies:
+  - python=3.13.14
+  - pip
+  - pip:
+      - agentpy==0.1.5
+      - osmnx==2.1.1
+      - r5py==1.1.7
+      - geopandas==1.1.4
+      - shapely==2.1.2
+      - pandas==2.3.3
+      - numpy==2.5.2
+      - scipy==1.18.1
+      - statsmodels==0.14.6
+      - polars
+      - scikit-learn
+      - matplotlib
+      - pyarrow
+  # Java/JNI backend required by r5py (R5 engine): OpenJDK 25.0.4 (system JVM, /usr/bin/java)
+  # OS: Ubuntu 26.04 (kernel 7.0.0-31-generic)

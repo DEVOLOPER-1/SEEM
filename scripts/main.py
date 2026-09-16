@@ -2,6 +2,7 @@
 import gc
 import json
 import os
+import sys
 import time
 from datetime import datetime
 from pathlib import Path
@@ -127,6 +128,7 @@ def main():
 
     # Define parameters
     parameters = {
+        "seed": 20260916,  # canonical-run fixed seed (pre-declared)
         "start_datetime": datetime(2023, 1, 1, 8, 0, 0),  # Simulation start time
         "step_seconds": 60,  # 1 minute per step
         "svi_speed_penalty": 0.3,
@@ -156,6 +158,43 @@ def main():
 
     end_time = time.time()
     print(f"-> Simulation completed in {end_time - start_time:.2f} seconds")
+
+    # Canonical event semantics: censor horizon non-arrivals
+    if hasattr(model, "finalize_horizon"):
+        model.finalize_horizon()
+
+    # Run manifest: commit, assets, seed, config, versions
+    import hashlib, subprocess as _sp
+    def _sha(p):
+        h = hashlib.sha256()
+        with open(p, "rb") as f:
+            for c in iter(lambda: f.read(1 << 22), b""):
+                h.update(c)
+        return h.hexdigest()
+    _DATA = Path(__file__).parent.parent / "data" / "maps"
+    _commit = _sp.run(["git", "rev-parse", "HEAD"], capture_output=True, text=True,
+                      cwd=str(Path(__file__).parent.parent)).stdout.strip()
+    _manifest = {
+        "git_commit": _commit,
+        "seed": parameters["seed"],
+        "config": {k: (str(v) if not isinstance(v, (int, float, str, bool)) else v)
+                   for k, v in parameters.items() if k not in ("amenities_df", "evacuation_area_polygon", "agents_df")},
+        "assets_sha256": {
+            "drive": _sha(_DATA / "osmnx_layers/IDF_drive_network.graphml"),
+            "walk": _sha(_DATA / "osmnx_layers/IDF_walk_network.graphml"),
+            "bike": _sha(_DATA / "osmnx_layers/IDF_bike_network.graphml"),
+            "gtfs": _sha(_DATA / "osmnx_layers/IDFM-gtfs.zip"),
+            "osm_pbf": _sha(_DATA / "osm_chunks_pyrosm/ile-de-france-latest.osm.pbf"),
+        },
+        "n_agents": len(model.agents),
+        "steps": MAX_SIMULATION_STEPS,
+        "started": start_time, "ended": end_time,
+        "software": {"python": sys.version.split()[0]},
+    }
+    _mpath = Path(__file__).parent.parent / "outputs" / "run_manifest.json"
+    with open(_mpath, "w") as f:
+        json.dump(_manifest, f, indent=2, default=str)
+    print(f"-> Run manifest written to {_mpath}")
 
     # Access and analyze results
     print("\n=== SIMULATION RESULTS ===")
