@@ -2,6 +2,7 @@ import datetime
 import gc
 from pathlib import Path
 from typing import Any, List, Optional, Tuple
+
 import numpy as np
 import polars as pl
 import shapely
@@ -11,7 +12,7 @@ from shapely.geometry import Point
 
 class AgentsGatherer:
     """
-    Fixed AgentsGatherer with consistent coordinate system handling.
+    AgentsGatherer with consistent coordinate system handling.
 
     Key principles:
     - All API inputs/outputs use (latitude, longitude) format for consistency
@@ -21,10 +22,10 @@ class AgentsGatherer:
     """
 
     def __init__(
-        self,
-        evac_area_center: Tuple[float, float],
-        evacuation_area_polygon: shapely.geometry.Polygon,
-        time: str,
+            self,
+            evac_area_center: Tuple[float, float],
+            evacuation_area_polygon: shapely.geometry.Polygon,
+            time: str,
     ) -> None:
         """
         Initialize AgentsGatherer.
@@ -140,10 +141,10 @@ class AgentsGatherer:
         return gps_df
 
     def read_and_summarize_agents(
-        self,
-        output_csv_path: str = "mesa_initializers.csv",
-        fallback_to_full_trace: bool = True,
-        verbose: bool = True,
+            self,
+            output_csv_path: str = "mesa_initializers.csv",
+            fallback_to_full_trace: bool = True,
+            verbose: bool = True,
     ) -> List[dict]:
         """
         Read GPS data and create agent summaries.
@@ -225,14 +226,14 @@ class AgentsGatherer:
         return summaries
 
     def _process_single_agent(
-        self,
-        agent_id: str,
-        main_mode: str,
-        target_month: int,
-        target_day: int,
-        target_hour: int,
-        fallback_to_full_trace: bool,
-        verbose: bool,
+            self,
+            agent_id: str,
+            main_mode: str,
+            target_month: int,
+            target_day: int,
+            target_hour: int,
+            fallback_to_full_trace: bool,
+            verbose: bool,
     ) -> Optional[dict]:
         """Process a single agent's GPS data."""
         gps_path = f"{self.__data_path}/gps_dataset/{agent_id}.csv"
@@ -297,18 +298,17 @@ class AgentsGatherer:
         )
 
     def _find_gps_data_with_fallback(
-        self,
-        df_c: pl.DataFrame,
-        target_month: int,
-        target_day: int,
-        target_hour: int,
-        fallback_to_full_trace: bool,
-        agent_id: str,
-        verbose: bool,
+            self,
+            df_c: pl.DataFrame,
+            target_month: int,
+            target_day: int,
+            target_hour: int,
+            fallback_to_full_trace: bool,
+            agent_id: str,
+            verbose: bool,
     ) -> Optional[pl.DataFrame]:
         """Find GPS data using fallback strategy."""
         df_search = None
-        fallback_used = False
 
         # Primary filter: exact month/day match with time window
         try:
@@ -361,12 +361,12 @@ class AgentsGatherer:
         return df_search
 
     def _extract_agent_summary(
-        self,
-        df_search: pl.DataFrame,
-        agent_id: str,
-        main_mode: str,
-        agent_home: Tuple[float, float],
-        verbose: bool,
+            self,
+            df_search: pl.DataFrame,
+            agent_id: str,
+            main_mode: str,
+            agent_home: Tuple[float, float],
+            verbose: bool,
     ) -> Optional[dict]:
         """Extract summary data from agent's GPS traces."""
         # Extract data lists
@@ -391,12 +391,11 @@ class AgentsGatherer:
 
         for i, (lat, lon) in enumerate(zip(lats, lons)):
             if (
-                lat is not None
-                and lon is not None
-                and not (np.isnan(lat) or np.isnan(lon))
-                and self._validate_coordinates(lat, lon)
+                    lat is not None
+                    and lon is not None
+                    and not (np.isnan(lat) or np.isnan(lon))
+                    and self._validate_coordinates(lat, lon)
             ):
-
                 valid_coords.append((lat, lon))  # Store as (lat, lon)
                 valid_times.append(times[i])
                 valid_speeds.append(speeds_raw[i] if i < len(speeds_raw) else None)
@@ -463,7 +462,7 @@ class AgentsGatherer:
         }
 
     def _save_agent_summaries(
-        self, summaries: List[dict], output_csv_path: Path, verbose: bool
+            self, summaries: List[dict], output_csv_path: Path, verbose: bool
     ) -> None:
         """Save agent summaries to CSV with additional processing."""
         base_df = pl.DataFrame(summaries)
@@ -511,7 +510,7 @@ class AgentsGatherer:
 
     @staticmethod
     def __haversine_distance_m(
-        point1: Tuple[float, float], point2: Tuple[float, float]
+            point1: Tuple[float, float], point2: Tuple[float, float]
     ) -> float:
         """
         Calculate haversine distance between two points.
@@ -631,7 +630,7 @@ class AgentsGatherer:
 
     @staticmethod
     def __get_centroid_of_his_locations(
-        df: pl.DataFrame,
+            df: pl.DataFrame,
     ) -> Optional[Tuple[float, float]]:
         """
         Get centroid of agent's nighttime locations (home estimation).
@@ -673,24 +672,24 @@ class AgentsGatherer:
             # Convert to Cartesian coordinates for proper centroid calculation
             lats = df.select("LATITUDE").to_series().to_numpy()
             lons = df.select("LONGITUDE").to_series().to_numpy()
-            
+
             # Convert to radians
             lat_rad = np.radians(lats)
             lon_rad = np.radians(lons)
-            
+
             # Convert to Cartesian coordinates
             x = np.cos(lat_rad) * np.cos(lon_rad)
             y = np.cos(lat_rad) * np.sin(lon_rad)
             z = np.sin(lat_rad)
-            
+
             # Calculate mean Cartesian coordinates
             mean_x = np.mean(x)
             mean_y = np.mean(y)
             mean_z = np.mean(z)
-            
+
             # Convert back to lat/lon
             c_lon = np.degrees(np.arctan2(mean_y, mean_x))
-            c_lat = np.degrees(np.arctan2(mean_z, np.sqrt(mean_x**2 + mean_y**2)))
+            c_lat = np.degrees(np.arctan2(mean_z, np.sqrt(mean_x ** 2 + mean_y ** 2)))
 
             if c_lat is None or c_lon is None:
                 return None
