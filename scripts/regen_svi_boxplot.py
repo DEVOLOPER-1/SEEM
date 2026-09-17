@@ -44,8 +44,8 @@ ax.text(q3, 0.72, f"Q3: {q3:.3f}", ha="left", va="top", fontsize=14,
         color=PRIMARY, fontweight="semibold")
 ax.text(mean_val, 0.6, f"Mean: {mean_val:.3f}", ha="center", va="top", fontsize=14,
         color=ACCENT, fontweight="semibold")
-ax.text(0.02, -0.25, f"n = {n:,} participants (participant-level, one SVI per participant)",
-        transform=ax.get_xaxis_transform(), fontsize=12, color="#444444")
+ax.text(0.0, -0.32, f"n = {n:,} (participant-level, one SVI per participant)",
+        transform=ax.get_xaxis_transform(), fontsize=12, color="#444444", clip_on=False)
 
 ax.set_yticks([])
 ax.set_xlim(-0.02, 1.02)
@@ -54,6 +54,7 @@ ax.set_xlabel("Social Vulnerability Index (SVI) scores", fontsize=15)
 for lbl in ax.get_xticklabels(): lbl.set_fontsize(13)
 ax.grid(axis="x", color="#E5E5E5", linewidth=0.8)
 ax.set_axisbelow(True)
+fig.subplots_adjust(bottom=0.18)
 fig.tight_layout()
 fig.savefig("outputs/figures/svi_analysis/svi_boxplot_analysis_no_title.png", dpi=300,
             bbox_inches="tight")
