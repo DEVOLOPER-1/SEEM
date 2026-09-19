@@ -70,4 +70,4 @@ preferred-citation:
   collection-title: "NetMob25 Data Challenge"
   year: 2025
   url: "https://netmob.org/www25/files/NetMob25_Book_of_Abstracts.pdf"
-  doi: "NETMOB25_DOI_PLACEHOLDER"  # TODO: replace with proceedings DOI if assigned
+  # doi: "NETMOB25_DOI_PLACEHOLDER"  # TODO: replace with proceedings DOI if assigned
